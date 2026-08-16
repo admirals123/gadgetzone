@@ -109,6 +109,13 @@ $queries = [
     ('stripe_webhook_secret', '')"
 ];
 
+// Generate fresh hash for the admin password at runtime (avoids any bcrypt compatibility issues)
+$adminPasswordHash = password_hash('Admin@1234', PASSWORD_BCRYPT, ['cost' => 10]);
+$queries[] = "INSERT INTO users (id, first_name, last_name, email, password, phone, role)
+    VALUES (1, 'Super', 'Admin', 'admin@gadgetzone.com', '$adminPasswordHash', '+8801700000000', 'super_admin')
+    ON DUPLICATE KEY UPDATE password = '$adminPasswordHash', role = 'super_admin'";
+
+
 $successCount = 0;
 foreach ($queries as $i => $q) {
     if (mysqli_query($conn, $q)) {
