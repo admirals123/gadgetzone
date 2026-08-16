@@ -38,16 +38,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         $hash = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = mysqli_prepare($conn, "INSERT INTO users (first_name, last_name, email, password, role) VALUES (?, ?, ?, ?, 'member')");
+        $stmt = mysqli_prepare($conn, "INSERT INTO users (first_name, last_name, email, password, role) VALUES (?, ?, ?, ?, 'customer')");
         mysqli_stmt_bind_param($stmt, "ssss", $vals['first_name'], $vals['last_name'], $vals['email'], $hash);
         mysqli_stmt_execute($stmt);
         $newId = mysqli_insert_id($conn);
+        $insertError = mysqli_stmt_error($stmt);
         mysqli_stmt_close($stmt);
 
-        $_SESSION['user_id'] = $newId;
-        $_SESSION['role'] = 'member';
-        header('Location: ' . $base . '/pages/myaccount.php');
-        exit;
+        if ($newId > 0) {
+            $_SESSION['user_id'] = $newId;
+            $_SESSION['role'] = 'customer';
+            header('Location: ' . $base . '/pages/myaccount.php');
+            exit;
+        } else {
+            $errors[] = 'Registration failed. ' . ($insertError ? htmlspecialchars($insertError) : 'Please try again.');
+        }
     }
 }
 

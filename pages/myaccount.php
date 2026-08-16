@@ -87,7 +87,15 @@ mysqli_stmt_execute($stmt);
 $orders = mysqli_fetch_all(mysqli_stmt_get_result($stmt), MYSQLI_ASSOC);
 mysqli_stmt_close($stmt);
 
-$initials = strtoupper(substr($user['first_name'],0,1) . substr($user['last_name'],0,1));
+// Guard: if user data is missing (session stale), re-login
+if (!$user) {
+    session_destroy();
+    header('Location: ' . $base . '/pages/login.php');
+    exit;
+}
+
+$initials = strtoupper(substr($user['first_name'] ?? 'U', 0, 1) . substr($user['last_name'] ?? '', 0, 1));
+
 
 require_once __DIR__ . '/../includes/header.php';
 ?>
