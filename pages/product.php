@@ -47,20 +47,10 @@ require_once __DIR__ . '/../includes/header.php';
     <?= e($product['name']) ?>
   </div>
 
-  <!-- Amazon-style zoom layout -->
-  <div class="product-detail" style="position:relative;">
-    <div style="position:relative;">
-      <!-- Main image with hover lens -->
-      <div class="pz-main" id="pzMain">
-        <img src="<?= e($product['image_url']) ?>" alt="<?= e($product['name']) ?>" id="pzImg" draggable="false">
-        <div class="pz-lens" id="pzLens"></div>
-      </div>
-      <!-- Zoom result panel (appears to the right on hover) -->
-      <div class="pz-result" id="pzResult">
-        <div id="pzResultInner" style="width:100%;height:100%;background-repeat:no-repeat;"></div>
-      </div>
+  <div class="product-detail">
+    <div class="product-detail-img">
+      <img src="<?= e($product['image_url']) ?>" alt="<?= e($product['name']) ?>">
     </div>
-    <p class="pz-hint">🔍 Hover to zoom &nbsp;·&nbsp; Click to enlarge</p>
     <div class="product-detail-info">
       <?php if ($product['badge']): ?><span class="badge <?= e($product['badge']) ?>" style="position:static; display:inline-block;"><?= e($product['badge']) ?></span><?php endif; ?>
       <h1 class="product-detail-title"><?= e($product['name']) ?></h1>
@@ -176,121 +166,3 @@ require_once __DIR__ . '/../includes/header.php';
 </div>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
-
-<!-- Fullscreen Lightbox -->
-<div id="gz-lightbox" onclick="closeLightboxOnBg(event)" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.93);backdrop-filter:blur(8px);flex-direction:column;align-items:center;justify-content:center;">
-  <div style="position:absolute;top:16px;right:16px;display:flex;gap:8px;z-index:2;">
-    <button onclick="lbZoom(.3)"   style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:20px;cursor:pointer;">+</button>
-    <button onclick="lbZoom(-.3)"  style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:20px;cursor:pointer;">−</button>
-    <button onclick="lbReset()"    style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:12px;cursor:pointer;font-weight:700;">1:1</button>
-    <button onclick="closeLightbox()" style="width:40px;height:40px;border-radius:50%;background:rgba(239,68,68,.25);border:1px solid rgba(239,68,68,.4);color:#f87171;font-size:22px;cursor:pointer;">×</button>
-  </div>
-  <div id="lbBadge" style="position:absolute;top:16px;left:16px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#fff;padding:4px 14px;border-radius:999px;font-size:13px;font-weight:700;">100%</div>
-  <div id="lbCont" style="overflow:hidden;width:100%;height:100%;display:flex;align-items:center;justify-content:center;cursor:grab;">
-    <img id="lbImg" src="" alt="" draggable="false" style="max-width:90vw;max-height:90vh;object-fit:contain;border-radius:8px;box-shadow:0 30px 80px rgba(0,0,0,.8);transform-origin:center;transition:transform .12s;user-select:none;">
-  </div>
-  <div id="lbCaption" style="color:rgba(255,255,255,.5);font-size:13px;margin-top:10px;"></div>
-</div>
-
-<style>
-/* Amazon hover zoom */
-.pz-main {
-  position:relative; width:100%; border-radius:var(--radius);
-  overflow:hidden; cursor:crosshair;
-  border:1px solid var(--border); background:var(--surface2);
-}
-.pz-main img { width:100%; display:block; user-select:none; }
-.pz-lens {
-  position:absolute; width:130px; height:130px; display:none; pointer-events:none;
-  border:2px solid var(--accent); background:rgba(245,158,11,.08);
-  box-shadow:0 0 0 9999px rgba(0,0,0,.22); border-radius:2px; z-index:10;
-}
-.pz-result {
-  display:none; position:absolute; left:calc(100% + 16px); top:0;
-  width:440px; height:440px; border:1px solid var(--border);
-  border-radius:var(--radius); overflow:hidden; background:var(--surface);
-  box-shadow:0 20px 60px rgba(0,0,0,.5); z-index:200; pointer-events:none;
-}
-.pz-hint { font-size:12px; color:var(--text2); margin-top:8px; text-align:center; opacity:.7; }
-@media (max-width:1200px) {
-  .pz-main { cursor:zoom-in; }
-  .pz-lens, .pz-result { display:none !important; }
-}
-</style>
-
-<script>
-(function(){
-  const ZOOM = 3;
-  const main  = document.getElementById('pzMain');
-  const lens  = document.getElementById('pzLens');
-  const res   = document.getElementById('pzResult');
-  const inner = document.getElementById('pzResultInner');
-  const img   = document.getElementById('pzImg');
-  if (!main || !img) return;
-
-  function init() {
-    inner.style.backgroundImage = `url('${img.src}')`;
-    main.addEventListener('mouseenter', ()=>{ lens.style.display='block'; res.style.display='block'; });
-    main.addEventListener('mouseleave', ()=>{ lens.style.display='none';  res.style.display='none'; });
-    main.addEventListener('mousemove', move);
-    main.addEventListener('click', ()=> openLightbox(img.src, img.alt));
-  }
-
-  function move(e) {
-    const r  = main.getBoundingClientRect();
-    const lw = lens.offsetWidth, lh = lens.offsetHeight;
-    const rw = res.offsetWidth,  rh = res.offsetHeight;
-    let x = e.clientX - r.left - lw/2;
-    let y = e.clientY - r.top  - lh/2;
-    x = Math.max(0, Math.min(x, r.width  - lw));
-    y = Math.max(0, Math.min(y, r.height - lh));
-    lens.style.left = x+'px'; lens.style.top = y+'px';
-    const sx = (img.naturalWidth  || img.offsetWidth)  / img.offsetWidth;
-    const sy = (img.naturalHeight || img.offsetHeight) / img.offsetHeight;
-    const bw = img.offsetWidth * sx * ZOOM;
-    const bh = img.offsetHeight * sy * ZOOM;
-    const bx = -(x * sx * ZOOM - (rw - lw*ZOOM)/2);
-    const by = -(y * sy * ZOOM - (rh - lh*ZOOM)/2);
-    inner.style.backgroundSize     = `${bw}px ${bh}px`;
-    inner.style.backgroundPosition = `${bx}px ${by}px`;
-  }
-
-  if (img.complete) init(); else img.addEventListener('load', init);
-
-  /* --- Fullscreen Lightbox --- */
-  let _s=1,_drag=false,_ox=0,_oy=0,_tx=0,_ty=0;
-  window.openLightbox = (src,alt)=>{
-    document.getElementById('lbImg').src = src;
-    document.getElementById('lbCaption').textContent = alt||'';
-    document.getElementById('gz-lightbox').style.display = 'flex';
-    document.body.style.overflow='hidden'; lbReset();
-  };
-  window.closeLightbox = ()=>{
-    document.getElementById('gz-lightbox').style.display='none';
-    document.body.style.overflow='';
-  };
-  window.closeLightboxOnBg = e=>{
-    if(e.target===document.getElementById('gz-lightbox')||e.target===document.getElementById('lbCont')) closeLightbox();
-  };
-  window.lbZoom  = d=>{ _s=Math.min(6,Math.max(.5,_s+d)); lbApply(); };
-  window.lbReset = ()=>{ _s=1;_tx=0;_ty=0; lbApply(); };
-  function lbApply(){
-    document.getElementById('lbImg').style.transform=`translate(${_tx}px,${_ty}px) scale(${_s})`;
-    document.getElementById('lbBadge').textContent=Math.round(_s*100)+'%';
-  }
-  document.addEventListener('keydown',e=>{
-    if(document.getElementById('gz-lightbox').style.display==='none') return;
-    if(e.key==='Escape') closeLightbox();
-    if(e.key==='+'||e.key==='=') lbZoom(.3);
-    if(e.key==='-') lbZoom(-.3);
-    if(e.key==='0') lbReset();
-  });
-  document.getElementById('lbCont').addEventListener('wheel',e=>{
-    e.preventDefault(); lbZoom(e.deltaY<0?.2:-.2);
-  },{passive:false});
-  const lbc=document.getElementById('lbCont');
-  lbc.addEventListener('mousedown',e=>{ if(_s<=1)return; _drag=true;_ox=e.clientX-_tx;_oy=e.clientY-_ty; lbc.style.cursor='grabbing'; });
-  document.addEventListener('mousemove',e=>{ if(!_drag)return; _tx=e.clientX-_ox;_ty=e.clientY-_oy; lbApply(); });
-  document.addEventListener('mouseup',()=>{ _drag=false; lbc.style.cursor='grab'; });
-})();
-</script>
