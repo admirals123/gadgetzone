@@ -1,13 +1,7 @@
 {
   "version": 2,
   "functions": {
-    "*.php": {
-      "runtime": "vercel-php@0.7.3"
-    },
-    "pages/*.php": {
-      "runtime": "vercel-php@0.7.3"
-    },
-    "admin/*.php": {
+    "api/index.php": {
       "runtime": "vercel-php@0.7.3"
     }
   },
@@ -21,12 +15,8 @@
       "dest": "/admin/uploads/$1"
     },
     {
-      "src": "/",
-      "dest": "/index.php"
-    },
-    {
-      "src": "/(index\\.php|pages/.*|admin/.*)",
-      "dest": "/$1"
+      "src": "/(.*)",
+      "dest": "/api/index.php"
     }
   ]
 }
