@@ -71,8 +71,24 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="form-group"><label>Last Name</label><input type="text" name="last_name" value="<?= e($vals['last_name']) ?>" required></div>
       </div>
       <div class="form-group"><label>Email Address</label><input type="email" name="email" value="<?= e($vals['email']) ?>" required></div>
-      <div class="form-group"><label>Password</label><input type="password" name="password" minlength="6" required></div>
-      <div class="form-group"><label>Confirm Password</label><input type="password" name="confirm_password" minlength="6" required></div>
+      <div class="form-group">
+        <label>Password</label>
+        <div class="password-wrapper">
+          <input type="password" name="password" id="reg-password" minlength="6" required>
+          <button type="button" class="password-toggle" onclick="togglePassword('reg-password', this)" title="Show/Hide Password">
+            <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Confirm Password</label>
+        <div class="password-wrapper">
+          <input type="password" name="confirm_password" id="reg-confirm-password" minlength="6" required>
+          <button type="button" class="password-toggle" onclick="togglePassword('reg-confirm-password', this)" title="Show/Hide Password">
+            <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
       <button type="submit" class="btn-primary btn-full btn-lg">Create Account</button>
     </form>
 

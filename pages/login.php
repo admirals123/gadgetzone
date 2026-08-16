@@ -51,7 +51,15 @@ require_once __DIR__ . '/../includes/header.php';
 
     <form method="POST">
       <div class="form-group"><label>Email Address</label><input type="email" name="email" required></div>
-      <div class="form-group"><label>Password</label><input type="password" name="password" required></div>
+      <div class="form-group">
+        <label>Password</label>
+        <div class="password-wrapper">
+          <input type="password" name="password" id="login-password" required>
+          <button type="button" class="password-toggle" onclick="togglePassword('login-password', this)" title="Show/Hide Password">
+            <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
       <button type="submit" class="btn-primary btn-full btn-lg">🔒 Log In</button>
     </form>
 
