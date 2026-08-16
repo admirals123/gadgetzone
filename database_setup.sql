@@ -1,10 +1,6 @@
 -- ========================================================
 -- GadgetZone - Complete Database Setup & Schema
--- Database: gadgetzone
 -- ========================================================
-
-CREATE DATABASE IF NOT EXISTS gadgetzone CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE gadgetzone;
 
 -- --------------------------------------------------------
 -- 1. Table structure for `categories`
