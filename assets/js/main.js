@@ -49,22 +49,30 @@ function initThemeToggle() {
 // ---------------------------------------------------------------
 // Toast Notification
 // ---------------------------------------------------------------
-function showToast(message, actionUrl, actionText) {
+function showToast(message, actionUrl, actionText, icon) {
   const container = document.getElementById('toastContainer');
   if (!container) return;
 
   const toast = document.createElement('div');
   toast.className = 'toast-msg';
   toast.innerHTML = `
-    <span class="toast-icon">✓</span>
-    <div class="toast-body">${message}</div>
-    ${actionUrl ? `<a href="${actionUrl}" class="toast-action">${actionText || 'View Cart'}</a>` : ''}
+    <div class="toast-inner">
+      <div class="toast-icon-wrap">${icon || '✓'}</div>
+      <div class="toast-content">
+        <div class="toast-label">Added to Cart</div>
+        <div class="toast-body">${message}</div>
+      </div>
+    </div>
+    <div class="toast-footer">
+      <button class="toast-dismiss" onclick="this.closest('.toast-msg').remove()">Dismiss</button>
+      ${actionUrl ? `<a href="${actionUrl}" class="toast-action">${actionText || 'View Cart'} →</a>` : ''}
+    </div>
   `;
   container.appendChild(toast);
 
   // Trigger animation
   requestAnimationFrame(() => {
-    toast.classList.add('show');
+    requestAnimationFrame(() => toast.classList.add('show'));
   });
 
   setTimeout(() => {
@@ -72,6 +80,7 @@ function showToast(message, actionUrl, actionText) {
     setTimeout(() => toast.remove(), 400);
   }, 4000);
 }
+
 
 // ---------------------------------------------------------------
 // Buy Now (1-Click Direct Checkout)
