@@ -379,17 +379,117 @@ require_once __DIR__ . '/layout.php';
       </div>
 
       <div class="form-group">
-        <label>Image URL (or select file below)</label>
-        <input type="text" name="image_url" id="prodImageUrlInput" placeholder="https://images.unsplash.com/...">
-      </div>
+        <label>Product Image</label>
 
-      <div class="form-group">
-        <label>Upload Image File</label>
-        <input type="file" name="image_file" id="productImageInput" accept="image/*">
-        <div style="margin-top:10px;">
-          <img id="productImagePreview" style="display:none; width:80px; height:80px; object-fit:cover; border-radius:8px; border:1px solid var(--border);" alt="Preview">
+        <!-- Drop zone -->
+        <div id="imgDropZone" style="border:2px dashed var(--border); border-radius:12px; padding:28px 20px; text-align:center; cursor:pointer; transition:border-color .2s; position:relative;" onclick="document.getElementById('productImageInput').click()" ondragover="event.preventDefault();this.style.borderColor='var(--accent)'" ondragleave="this.style.borderColor='var(--border)'" ondrop="handleDrop(event)">
+          <div id="imgDropContent">
+            <div style="font-size:32px; margin-bottom:8px;">📁</div>
+            <div style="font-weight:700; margin-bottom:4px;">Click to upload or drag & drop</div>
+            <div style="font-size:12px; color:var(--text2);">JPG, PNG, WEBP, GIF — max 10MB</div>
+          </div>
+          <img id="productImagePreview" style="display:none; width:100%; max-height:200px; object-fit:contain; border-radius:8px;" alt="Preview">
+          <input type="file" id="productImageInput" accept="image/*" style="display:none;" onchange="handleImageUpload(this.files[0])">
+        </div>
+
+        <!-- Status bar -->
+        <div id="uploadStatus" style="margin-top:8px; font-size:13px; display:none; align-items:center; gap:8px;">
+          <span id="uploadStatusIcon"></span>
+          <span id="uploadStatusText"></span>
+        </div>
+
+        <!-- Progress bar -->
+        <div id="uploadProgressWrap" style="display:none; height:4px; background:var(--border); border-radius:999px; margin-top:6px; overflow:hidden;">
+          <div id="uploadProgressBar" style="height:100%; background:linear-gradient(90deg,var(--accent),#f97316); border-radius:999px; width:0%; transition:width .3s;"></div>
+        </div>
+
+        <!-- URL input (manual or auto-filled after upload) -->
+        <div style="margin-top:12px;">
+          <label style="font-size:12px; color:var(--text2); margin-bottom:4px; display:block;">Or paste an image URL directly:</label>
+          <input type="text" name="image_url" id="prodImageUrlInput" placeholder="https://images.unsplash.com/..." oninput="previewFromUrl(this.value)" style="font-size:13px;">
         </div>
       </div>
+
+      <script>
+      const _uploadBase = (function(){
+        const m = window.location.pathname.match(/^(\/[^\/]*gadget[^\/]*)/i);
+        return m ? m[1] : '';
+      })();
+
+      function setStatus(icon, text, color) {
+        const bar = document.getElementById('uploadStatus');
+        document.getElementById('uploadStatusIcon').textContent = icon;
+        document.getElementById('uploadStatusText').textContent = text;
+        document.getElementById('uploadStatusText').style.color = color || 'var(--text2)';
+        bar.style.display = 'flex';
+      }
+
+      function setProgress(pct) {
+        const wrap = document.getElementById('uploadProgressWrap');
+        const bar  = document.getElementById('uploadProgressBar');
+        wrap.style.display = pct > 0 && pct < 100 ? 'block' : 'none';
+        bar.style.width = pct + '%';
+      }
+
+      function showPreview(url) {
+        const prev = document.getElementById('productImagePreview');
+        const drop = document.getElementById('imgDropContent');
+        prev.src = url;
+        prev.style.display = 'block';
+        drop.style.display = 'none';
+        document.getElementById('imgDropZone').style.borderColor = '#4ade80';
+      }
+
+      function previewFromUrl(url) {
+        if (url && url.startsWith('http')) showPreview(url);
+      }
+
+      function handleDrop(e) {
+        e.preventDefault();
+        document.getElementById('imgDropZone').style.borderColor = 'var(--border)';
+        const file = e.dataTransfer.files[0];
+        if (file) handleImageUpload(file);
+      }
+
+      function handleImageUpload(file) {
+        if (!file) return;
+        const allowed = ['image/jpeg','image/png','image/webp','image/gif'];
+        if (!allowed.includes(file.type)) {
+          setStatus('❌', 'Invalid file type. Use JPG, PNG, WEBP or GIF.', '#f87171');
+          return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+          setStatus('❌', 'File too large. Max 10MB.', '#f87171');
+          return;
+        }
+
+        // Local preview immediately
+        const reader = new FileReader();
+        reader.onload = e => showPreview(e.target.result);
+        reader.readAsDataURL(file);
+
+        setStatus('⏳', 'Uploading...', 'var(--text2)');
+        setProgress(30);
+
+        const fd = new FormData();
+        fd.append('image', file);
+
+        fetch(_uploadBase + '/admin/upload_image.php', { method: 'POST', body: fd })
+          .then(r => r.json())
+          .then(data => {
+            setProgress(100);
+            setTimeout(() => setProgress(0), 600);
+            if (data.success) {
+              document.getElementById('prodImageUrlInput').value = data.url;
+              showPreview(data.url);
+              setStatus('✅', 'Image uploaded successfully!', '#4ade80');
+            } else {
+              setStatus('❌', data.error || 'Upload failed.', '#f87171');
+            }
+          })
+          .catch(() => setStatus('❌', 'Upload failed — check your connection.', '#f87171'));
+      }
+      </script>
 
       <div style="display:flex; gap:10px; margin-top:20px;">
         <button type="button" class="btn-outline btn-full" data-close-modal>Cancel</button>
