@@ -7,12 +7,31 @@
   },
   "routes": [
     {
+      "src": "/assets/css/(.*\\.css)",
+      "dest": "/assets/css/$1",
+      "headers": { "Content-Type": "text/css" }
+    },
+    {
+      "src": "/assets/js/(.*\\.js)",
+      "dest": "/assets/js/$1",
+      "headers": { "Content-Type": "application/javascript" }
+    },
+    {
       "src": "/assets/(.*)",
       "dest": "/assets/$1"
     },
     {
+      "src": "/admin/admin\\.css",
+      "dest": "/admin/admin.css",
+      "headers": { "Content-Type": "text/css" }
+    },
+    {
       "src": "/admin/uploads/(.*)",
       "dest": "/admin/uploads/$1"
+    },
+    {
+      "src": "/(.*\\.(ico|png|jpg|jpeg|gif|webp|svg|woff|woff2|ttf|eot))",
+      "dest": "/$1"
     },
     {
       "src": "/(.*)",
