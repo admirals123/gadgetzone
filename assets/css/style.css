@@ -38,6 +38,11 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 body {
   background: var(--bg);
   color: var(--text);
@@ -742,4 +747,11 @@ img { max-width: 100%; display: block; }
   .product-grid, .product-grid.cols-4 { grid-template-columns: 1fr; }
   .hero-headline { font-size: 32px; }
   .form-row { grid-template-columns: 1fr; }
+  .container { padding: 0 16px; }
+  .stat-cards { grid-template-columns: 1fr 1fr; }
+  .footer-inner { grid-template-columns: 1fr; }
+  .hero-img { max-width: 100%; overflow: hidden; }
+  .category-bar { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .qty-add-row { flex-wrap: wrap; }
+  table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }
