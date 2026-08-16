@@ -8,12 +8,24 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// ---- Connection settings (supports local XAMPP & Cloud Environment Variables) ----
-$dbHost = getenv('DB_HOST') ?: (getenv('MYSQLHOST') ?: 'localhost');
-$dbUser = getenv('DB_USER') ?: (getenv('MYSQLUSER') ?: 'root');
-$dbPass = getenv('DB_PASS') !== false ? getenv('DB_PASS') : (getenv('MYSQLPASSWORD') !== false ? getenv('MYSQLPASSWORD') : '');
-$dbName = getenv('DB_NAME') ?: (getenv('MYSQLDATABASE') ?: 'gadgetzone');
-$dbPort = getenv('DB_PORT') ? (int)getenv('DB_PORT') : (getenv('MYSQLPORT') ? (int)getenv('MYSQLPORT') : 3306);
+// ---- Connection settings (supports local XAMPP, Railway, TiDB, Aiven, Vercel) ----
+$mysqlUrl = getenv('MYSQL_URL') ?: (getenv('DATABASE_URL') ?: '');
+
+if (!empty($mysqlUrl)) {
+    $parsed = parse_url($mysqlUrl);
+    $dbHost = $parsed['host'] ?? 'localhost';
+    $dbPort = isset($parsed['port']) ? (int)$parsed['port'] : 3306;
+    $dbUser = $parsed['user'] ?? 'root';
+    $dbPass = $parsed['pass'] ?? '';
+    $dbName = isset($parsed['path']) ? ltrim($parsed['path'], '/') : 'railway';
+} else {
+    $dbHost = getenv('DB_HOST') ?: (getenv('MYSQLHOST') ?: 'localhost');
+    $dbUser = getenv('DB_USER') ?: (getenv('MYSQLUSER') ?: 'root');
+    $dbPass = getenv('DB_PASS') !== false ? getenv('DB_PASS') : (getenv('MYSQLPASSWORD') !== false ? getenv('MYSQLPASSWORD') : (getenv('MYSQL_ROOT_PASSWORD') !== false ? getenv('MYSQL_ROOT_PASSWORD') : ''));
+    $dbName = getenv('DB_NAME') ?: (getenv('MYSQLDATABASE') ?: (getenv('MYSQL_DATABASE') ?: 'gadgetzone'));
+    $dbPort = getenv('DB_PORT') ? (int)getenv('DB_PORT') : (getenv('MYSQLPORT') ? (int)getenv('MYSQLPORT') : 3306);
+}
+
 $dbSsl  = getenv('DB_SSL') === 'true' || getenv('MYSQL_SSL') === 'true';
 
 define('DB_HOST', $dbHost);
