@@ -49,7 +49,15 @@ require_once __DIR__ . '/../includes/header.php';
 
   <div class="product-detail">
     <div class="product-detail-img">
-      <img src="<?= e($product['image_url']) ?>" alt="<?= e($product['name']) ?>">
+      <img
+        src="<?= e($product['image_url']) ?>"
+        alt="<?= e($product['name']) ?>"
+        id="productMainImg"
+        onclick="openLightbox(this.src, this.alt)"
+        title="Click to zoom"
+        style="cursor: zoom-in;"
+      >
+      <div class="zoom-hint">🔍 Click image to zoom</div>
     </div>
     <div class="product-detail-info">
       <?php if ($product['badge']): ?><span class="badge <?= e($product['badge']) ?>" style="position:static; display:inline-block;"><?= e($product['badge']) ?></span><?php endif; ?>
@@ -166,3 +174,125 @@ require_once __DIR__ . '/../includes/header.php';
 </div>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
+
+<!-- ── Lightbox Overlay ─────────────────────────────────────── -->
+<div id="gz-lightbox" onclick="closeLightboxOnBg(event)" style="
+  display:none; position:fixed; inset:0; z-index:99999;
+  background:rgba(0,0,0,0.92); backdrop-filter:blur(6px);
+  align-items:center; justify-content:center; flex-direction:column;
+">
+  <!-- Controls -->
+  <div style="position:absolute; top:16px; right:16px; display:flex; gap:10px; z-index:2;">
+    <button onclick="zoomLightbox(0.25)" title="Zoom In"  style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:20px;cursor:pointer;line-height:1;">+</button>
+    <button onclick="zoomLightbox(-0.25)" title="Zoom Out" style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:20px;cursor:pointer;line-height:1;">−</button>
+    <button onclick="resetLightbox()" title="Reset"    style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:13px;cursor:pointer;font-weight:700;">1:1</button>
+    <button onclick="closeLightbox()" title="Close"    style="width:40px;height:40px;border-radius:50%;background:rgba(239,68,68,.25);border:1px solid rgba(239,68,68,.4);color:#f87171;font-size:20px;cursor:pointer;line-height:1;">×</button>
+  </div>
+
+  <!-- Zoom level badge -->
+  <div id="lbZoomBadge" style="position:absolute;top:16px;left:16px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#fff;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:700;z-index:2;">100%</div>
+
+  <!-- Image container -->
+  <div id="lbContainer" style="overflow:hidden;width:100%;height:100%;display:flex;align-items:center;justify-content:center;cursor:grab;">
+    <img id="lbImg" src="" alt="" style="max-width:90vw;max-height:90vh;object-fit:contain;border-radius:8px;box-shadow:0 30px 80px rgba(0,0,0,.8);transform-origin:center center;transition:transform .15s ease;user-select:none;-webkit-user-drag:none;">
+  </div>
+
+  <!-- Caption -->
+  <div id="lbCaption" style="color:rgba(255,255,255,.6);font-size:13px;margin-top:12px;text-align:center;padding:0 20px;"></div>
+</div>
+
+<style>
+#productMainImg { transition: transform .2s, box-shadow .2s; }
+#productMainImg:hover { transform: scale(1.02); box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+.zoom-hint { text-align:center; font-size:12px; color:var(--text2); margin-top:8px; opacity:.7; }
+</style>
+
+<script>
+let _lbScale = 1, _lbDragging = false, _lbDragX = 0, _lbDragY = 0, _lbTransX = 0, _lbTransY = 0;
+
+function openLightbox(src, alt) {
+  const lb = document.getElementById('gz-lightbox');
+  document.getElementById('lbImg').src = src;
+  document.getElementById('lbCaption').textContent = alt || '';
+  lb.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  resetLightbox();
+}
+
+function closeLightbox() {
+  document.getElementById('gz-lightbox').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function closeLightboxOnBg(e) {
+  if (e.target === document.getElementById('gz-lightbox') ||
+      e.target === document.getElementById('lbContainer')) closeLightbox();
+}
+
+function zoomLightbox(delta) {
+  _lbScale = Math.min(5, Math.max(0.5, _lbScale + delta));
+  applyLbTransform();
+}
+
+function resetLightbox() {
+  _lbScale = 1; _lbTransX = 0; _lbTransY = 0;
+  applyLbTransform();
+}
+
+function applyLbTransform() {
+  const img = document.getElementById('lbImg');
+  img.style.transform = `translate(${_lbTransX}px, ${_lbTransY}px) scale(${_lbScale})`;
+  document.getElementById('lbZoomBadge').textContent = Math.round(_lbScale * 100) + '%';
+}
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  const lb = document.getElementById('gz-lightbox');
+  if (lb.style.display === 'none') return;
+  if (e.key === 'Escape') closeLightbox();
+  if (e.key === '+' || e.key === '=') zoomLightbox(0.25);
+  if (e.key === '-') zoomLightbox(-0.25);
+  if (e.key === '0') resetLightbox();
+});
+
+// Mouse wheel zoom
+document.getElementById('lbContainer').addEventListener('wheel', e => {
+  e.preventDefault();
+  zoomLightbox(e.deltaY < 0 ? 0.15 : -0.15);
+}, { passive: false });
+
+// Drag to pan
+const lbCont = document.getElementById('lbContainer');
+lbCont.addEventListener('mousedown', e => {
+  if (_lbScale <= 1) return;
+  _lbDragging = true; _lbDragX = e.clientX - _lbTransX; _lbDragY = e.clientY - _lbTransY;
+  lbCont.style.cursor = 'grabbing';
+});
+document.addEventListener('mousemove', e => {
+  if (!_lbDragging) return;
+  _lbTransX = e.clientX - _lbDragX; _lbTransY = e.clientY - _lbDragY;
+  applyLbTransform();
+});
+document.addEventListener('mouseup', () => { _lbDragging = false; lbCont.style.cursor = 'grab'; });
+
+// Touch pinch zoom
+let _lbTouches = [], _lbInitDist = 0, _lbInitScale = 1;
+lbCont.addEventListener('touchstart', e => {
+  _lbTouches = [...e.touches];
+  if (_lbTouches.length === 2) {
+    const dx = _lbTouches[0].clientX - _lbTouches[1].clientX;
+    const dy = _lbTouches[0].clientY - _lbTouches[1].clientY;
+    _lbInitDist = Math.hypot(dx, dy);
+    _lbInitScale = _lbScale;
+  }
+}, { passive: true });
+lbCont.addEventListener('touchmove', e => {
+  if (e.touches.length === 2) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const dist = Math.hypot(dx, dy);
+    _lbScale = Math.min(5, Math.max(0.5, _lbInitScale * (dist / _lbInitDist)));
+    applyLbTransform();
+  }
+}, { passive: true });
+</script>
