@@ -115,8 +115,14 @@ require_once __DIR__ . '/../includes/header.php';
 
       <a href="<?= $base ?>/pages/checkout.php" class="btn-primary btn-full btn-lg">Proceed to Checkout →</a>
 
-      <div class="payment-icons" style="margin-top:16px;">💳 bKash • Nagad • COD • Visa • Mastercard</div>
-      <div class="security-badge">🔒 256-Bit SSL Encrypted & Protected Checkout</div>
+      <div class="payment-icons">
+        <span class="pay-pill">💳 Visa</span>
+        <span class="pay-pill">💳 Mastercard</span>
+        <span class="pay-pill">📱 bKash</span>
+        <span class="pay-pill">📱 Nagad</span>
+        <span class="pay-pill">🚚 COD</span>
+      </div>
+      <div class="security-badge">🔒 256-Bit SSL Encrypted &amp; Protected Checkout</div>
     </div>
   </div>
   <?php endif; ?>
